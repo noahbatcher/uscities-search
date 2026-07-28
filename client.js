@@ -24,7 +24,7 @@ searchInput.addEventListener('keypress', function(e) {
 const BASE_URL = "https://nbatcher-uscities-microservices-g2f0hzewhkgdb0as.eastus-01.azurewebsites.net";
 async function search() {
     const query = searchInput.value.trim();
-    if (!query) return; // AC9: empty/whitespace-only queries never reach fetch()
+    if (!query || query.length === 0) return; // AC9: empty/whitespace-only queries never reach fetch()
     console.log(`Debug>query: ${query}`); //for UI testing only
     try {
         const response = await fetch(`${BASE_URL}/uscities-search/${encodeURIComponent(query)}`);
@@ -65,3 +65,24 @@ function json2htmltable(data) {
     }).join('');
     return "<table><tr><th>City</th><th>State</th><th>Zips</th></tr>" + rows + "</table>";
 }
+// Instant Ajax Request — fires on every keyup, not just Enter
+/*searchInput.addEventListener('keyup', function (event) {
+    search();
+    if (event.key === 'Enter') 
+        searchInput.value = ''; // clear the field after an explicit Enter search
+});*/
+
+// Instant Ajax Request — at least 2 characters before suggesting and debounce ~300ms after the last keystroke
+var debounceTimer = null;
+searchInput.addEventListener('keyup', function (event) {
+    if (event.key === 'Enter') {
+        clearTimeout(debounceTimer);
+        search();
+        searchInput.value = ''; // clear the field after an explicit Enter search
+        return;
+    }
+    clearTimeout(debounceTimer);
+    var query = searchInput.value.trim();
+    if (query.length < 2) return;            // AC5: need at least 2 characters before suggesting
+    debounceTimer = setTimeout(search, 300); // AC7: debounce ~300ms after the last keystroke
+});
