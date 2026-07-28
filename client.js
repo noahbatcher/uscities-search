@@ -50,7 +50,7 @@ function displaySearch(data) {
   // AC1/AC2: matches found — this version only shows the raw JSON text
   // AC3: no matches — explicit message instead of a blank/empty display
   //responsesElm.textContent = data.length === 0 ? 'No cities found' : JSON.stringify(data, null, 2);
-  responsesElm.innerHTML = json2htmltable(data);
+  responsesElm.innerHTML = json2htmllist(data);
 }
 // Requires DOMPurify: https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.11/purify.min.js
 // AC9/AC10: sanitize every field before it is rendered as HTML
@@ -86,3 +86,18 @@ searchInput.addEventListener('keyup', function (event) {
     if (query.length < 2) return;            // AC5: need at least 2 characters before suggesting
     debounceTimer = setTimeout(search, 300); // AC7: debounce ~300ms after the last keystroke
 });
+// Requires data_sanitize function (and DOMPurify) loaded first
+function json2htmllist(data) {
+    if (!Array.isArray(data) || data.length === 0) return "No cities found"; // AC10/AC11
+    var items = data.map(function (c) {
+        return '<li class="city-card"><strong>' + data_sanitize(c.city) + '</strong>, ' +
+               data_sanitize(c.state_name) + ' <span class="zips">' + data_sanitize(c.zips) + '</span></li>';
+    }).join('');
+    return '<ul class="city-list">' + items + '</ul>';
+}
+/* Add to styles.css for the "fancy" card look:
+.city-list { list-style: none; padding: 0; }
+.city-card { background: #fff; border-left: 4px solid #4CAF50; border-radius: 6px;
+             padding: 8px 12px; margin: 6px 0; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.zips { color: #777; font-size: 12px; }
+*/
