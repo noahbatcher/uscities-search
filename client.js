@@ -25,7 +25,7 @@ const BASE_URL = "https://nbatcher-uscities-microservices-g2f0hzewhkgdb0as.eastu
 async function search() {
     const query = searchInput.value.trim();
     if (!query) return; // AC9: empty/whitespace-only queries never reach fetch()
-    console.log(`Debug>query: ${query}`); //for UI testing onxly
+    console.log(`Debug>query: ${query}`); //for UI testing only
     try {
         const response = await fetch(`${BASE_URL}/uscities-search/${encodeURIComponent(query)}`);
         if (!response.ok) {
@@ -49,6 +49,19 @@ function displaySearch(data) {
   }
   // AC1/AC2: matches found — this version only shows the raw JSON text
   // AC3: no matches — explicit message instead of a blank/empty display
-  // textContent for now
-  responsesElm.textContent = data.length === 0 ? 'No cities found' : JSON.stringify(data, null, 2);
+  //responsesElm.textContent = data.length === 0 ? 'No cities found' : JSON.stringify(data, null, 2);
+  responsesElm.innerHTML = json2htmltable(data);
+}
+// Requires DOMPurify: https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.11/purify.min.js
+// AC9/AC10: sanitize every field before it is rendered as HTML
+function data_sanitize(v) {
+    return DOMPurify.sanitize(typeof v === 'string' ? v : '');
+}
+function json2htmltable(data) {
+    if (!Array.isArray(data) || data.length === 0) return "No cities found"; // AC10/AC11
+    var rows = data.map(function (c) {
+        return "<tr><td>" + data_sanitize(c.city) + "</td><td>" + data_sanitize(c.state_name) +
+               "</td><td>" + data_sanitize(c.zips) + "</td></tr>";
+    }).join('');
+    return "<table><tr><th>City</th><th>State</th><th>Zips</th></tr>" + rows + "</table>";
 }
